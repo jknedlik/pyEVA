@@ -16,7 +16,10 @@ if(SKBUILD)
 endif()
 # set variables to find geneva
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMakeModules/")
+message("setting includes to ${GENEVA_INCLUDE_DIR}")
 find_package(Geneva)
+find_package(Boost COMPONENTS program_options serialization unit_test_framework REQUIRED)
+INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS}) 
 # add example to run via geneva
 add_subdirectory(examples)
 if(PYBUILD)
