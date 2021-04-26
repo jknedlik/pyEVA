@@ -1,0 +1,27 @@
+Project (Tests)
+SET ( EXECUTABLENAME GGenericStarter)
+
+# This is a workaround for a CLion-problem -- see CPP270 in the JetBrains issue tracker
+
+SET ( ${EXECUTABLENAME}_SRCS
+	GGenericStarter.cpp
+)
+
+
+ADD_EXECUTABLE(${EXECUTABLENAME}
+	${${EXECUTABLENAME}_SRCS} ${GENEVA_INCLUDE}
+)
+
+TARGET_LINK_LIBRARIES (${EXECUTABLENAME}
+    ${GENEVA_LIBRARIES}
+    ${Boost_LIBRARIES}
+)
+
+
+ADD_SUBDIRECTORY (config)
+
+#IF( GENEVA_BUILD_TESTS )
+#ADD_SUBDIRECTORY (Tests)
+#ENDIF()
+
+INSTALL ( TARGETS ${EXECUTABLENAME} DESTINATION ${INSTALL_PREFIX_DATA}/examples/${EXECUTABLENAME} )
