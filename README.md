@@ -5,7 +5,7 @@ pyEVA
 
 
 A tool for optimization using distribtued EVolutionary Algorithms based on the geneva framework.
-Python unterface usingexample project built with [pybind11](https://github.com/pybind/pybind11) and scikit-build.
+Python unterface usingexample project built with [pybind11](https://github.com/pybind/pybind11) and [scikit-build](https://github.com/scikit-build/scikit-build).
 
 
 
