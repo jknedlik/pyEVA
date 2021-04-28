@@ -18,13 +18,13 @@ from setuptools import find_packages
 
 
 setup(
-    name="teneva",
+    name="pyneva",
     version="0.0.1",
     description="Tool enabled evolutionary algorithms",
     author="Jan Knedlik",
     license="MIT",
     packages=find_packages(where = 'pysrc'),
     package_dir={"": "pysrc"},
-    cmake_install_dir="pysrc/scikit_build_example",
+    cmake_install_dir="pysrc/pyneva",
     include_package_data = True,
 )

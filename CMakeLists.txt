@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15...3.19)
 
-project(scikit_build_example VERSION "0.0.1")
+project(pyneva VERSION "0.0.1")
 include (FindPackageHandleStandardArgs)
 
 if(SKBUILD)
@@ -26,9 +26,9 @@ if(PYBUILD)
 # Now we can find pybind11
 find_package(pybind11 CONFIG REQUIRED)
 
-pybind11_add_module(_core MODULE src/main.cpp)
+pybind11_add_module(pyneva MODULE pysrc/main.cpp)
 
-target_compile_definitions(_core PRIVATE VERSION_INFO=${PROJECT_VERSION})
+target_compile_definitions(pyneva PRIVATE VERSION_INFO=${PROJECT_VERSION})
 
-install(TARGETS _core DESTINATION .)
+install(TARGETS pyneva DESTINATION .)
 endif()
