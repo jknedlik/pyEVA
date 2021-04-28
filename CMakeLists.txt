@@ -25,6 +25,8 @@ add_subdirectory(examples)
 if(PYBUILD)
 # Now we can find pybind11
 find_package(pybind11 CONFIG REQUIRED)
+INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS}) 
+INCLUDE_DIRECTORIES(${GENEVA_INCLUDE_DIR}) 
 
 pybind11_add_module(pyneva MODULE pysrc/main.cpp)
 
