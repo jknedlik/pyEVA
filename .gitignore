@@ -1,2 +1,4 @@
 build
 dist
+pysrc/pyneva/GGenericStarter
+pysrc/pyneva/pyneva.cpython-39-x86_64-linux-gnu.so
