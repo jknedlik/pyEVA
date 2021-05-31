@@ -28,7 +28,8 @@ if(PYBUILD)
 find_package(pybind11 CONFIG REQUIRED)
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS}) 
 INCLUDE_DIRECTORIES(${GENEVA_INCLUDE_DIR}) 
-
+message("link against: ${GENEVA_LIBRARIES}")
+LINK_LIBRARIES(${GENEVA_LIBS} ${Boost_LIBRARIES})
 pybind11_add_module(pyneva MODULE pysrc/main.cpp)
 
 target_compile_definitions(pyneva PRIVATE VERSION_INFO=${PROJECT_VERSION})
