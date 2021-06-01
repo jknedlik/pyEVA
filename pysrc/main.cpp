@@ -41,7 +41,8 @@ PYBIND11_MODULE(pyneva, m)
     )pbdoc");
   // custom wrapper for the Go3 EA Algorithm
   py::class_<GO3::Algorithm_EA>(m, "EA")
-      .def(py::init<int>())  // Algorithm ctor
+      .def(py::init(
+	  [](int size) { return GO3::Algorithm_EA(size); }))  // Algorithm ctor
       .def_readwrite("config",
 		     &GO3::Algorithm_EA::cfg);	// access to cfg attributes
   using dvec = std::vector<double>;
@@ -53,7 +54,7 @@ PYBIND11_MODULE(pyneva, m)
 	    return GO3::Population<ftype>(
 		{5, 5, 5}, {0, 0, 0}, {10, 10, 10},
 		[](std::vector<double> v) {
-		  return std::accumulate(v.begin(), v.end(), 0);
+		  return std::accumulate(v.begin(), v.end(), 0.0);
 		},
 		size, numParents);
 	  }));
@@ -61,14 +62,18 @@ PYBIND11_MODULE(pyneva, m)
   py::class_<GO3::GenevaOptimizer3>(m, "GOptimizer")
       .def(py::init(  // Optimizer ctor
 	  [](std::vector<std::string> argv_str) {
-	    std::vector<char*> argv(argv_str.size());
-	    std::generate(argv.begin(), argv.end(),
+	    std::vector<char*> argv(argv_str.size() + 1);
+	    // dummy element since the first one is stripped in c++
+	    argv[0] = (char*)"python";
+	    std::generate(argv.begin() + 1, argv.end(),
 			  [n = 0, &argv_str]() mutable {
 			    // evil const cast magic that should be changed in
 			    // GenevaOptimizer
 			    return const_cast<char*>(argv_str[n++].c_str());
 			  });
 	    // use unique_ptr as the go2 attribute of go3 is not moveable
+	    std::cout << "argv:";
+	    for (auto a : argv) std::cout << a;
 	    return std::make_unique<GO3::GenevaOptimizer3>(argv.size(),
 							   argv.data());
 	  }))
