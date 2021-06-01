@@ -1,4 +1,5 @@
 #include <pybind11/iostream.h>
+#include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/stl_bind.h>
@@ -51,15 +52,22 @@ PYBIND11_MODULE(pyneva, m)
   // custom wrapper for the Go3 Population
   py::class_<GO3::Population<ftype>>(m, "Population")
       .def(py::init(  // Population ctor
-	       [](int size, int numParents) {
+	       [](py::object functor, int size, int numParents) {
+		 pybind11::gil_scoped_release nogil;
 		 return GO3::Population<ftype>(
 		     {5, 5, 5}, {0, 0, 0}, {10, 10, 10},
-		     [](std::vector<double> v) {
-		       return std::accumulate(v.begin(), v.end(), 0.0);
+		     [functor](std::vector<double> v) -> double {
+		       // return std::accumulate(v.begin(), v.end(), 0.0);
+		       // std::string res = functor.attr("fitness")(v)
+		       auto a = py::array(py::cast(v));
+		       py::float_ r = functor.attr("fitness")(a);
+		       // double r = 15.0;
+		       return r.cast<double>();
 		     },
 		     size, numParents);
 	       }),
-	   py::kw_only(), py::arg_v("size", 42), py::arg_v("n_parents", 2));
+	   py::arg("f"), py::kw_only(), py::arg_v("size", 42),
+	   py::arg_v("n_parents", 2));
   // custom wrapper for the Go3 Optimizer
   py::class_<GO3::GenevaOptimizer3>(m, "GOptimizer")
       .def(py::init(  // Optimizer ctor
@@ -85,6 +93,7 @@ PYBIND11_MODULE(pyneva, m)
 	  "optimize",
 	  [](GO3::GenevaOptimizer3& self, GO3::Population<ftype>& pop,
 	     GO3::algorithmsT algos) {
+	    pybind11::gil_scoped_acquire acquire;
 	    return (*self.optimize(pop, algos)).raw_fitness();
 	  },
 	  py::call_guard<py::scoped_ostream_redirect,
