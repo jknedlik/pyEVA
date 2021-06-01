@@ -1,3 +1,4 @@
+#include <pybind11/iostream.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/stl_bind.h>
@@ -41,8 +42,8 @@ PYBIND11_MODULE(pyneva, m)
     )pbdoc");
   // custom wrapper for the Go3 EA Algorithm
   py::class_<GO3::Algorithm_EA>(m, "EA")
-      .def(py::init(
-	  [](int size) { return GO3::Algorithm_EA(size); }))  // Algorithm ctor
+      .def(py::init([](int iters) { return GO3::Algorithm_EA(iters); }),
+	   py::kw_only(), py::arg_v("iterations", 10))	// Algorithm ctor
       .def_readwrite("config",
 		     &GO3::Algorithm_EA::cfg);	// access to cfg attributes
   using dvec = std::vector<double>;
@@ -50,38 +51,44 @@ PYBIND11_MODULE(pyneva, m)
   // custom wrapper for the Go3 Population
   py::class_<GO3::Population<ftype>>(m, "Population")
       .def(py::init(  // Population ctor
-	  [](int size, int numParents) {
-	    return GO3::Population<ftype>(
-		{5, 5, 5}, {0, 0, 0}, {10, 10, 10},
-		[](std::vector<double> v) {
-		  return std::accumulate(v.begin(), v.end(), 0.0);
-		},
-		size, numParents);
-	  }));
+	       [](int size, int numParents) {
+		 return GO3::Population<ftype>(
+		     {5, 5, 5}, {0, 0, 0}, {10, 10, 10},
+		     [](std::vector<double> v) {
+		       return std::accumulate(v.begin(), v.end(), 0.0);
+		     },
+		     size, numParents);
+	       }),
+	   py::kw_only(), py::arg_v("size", 42), py::arg_v("n_parents", 2));
   // custom wrapper for the Go3 Optimizer
   py::class_<GO3::GenevaOptimizer3>(m, "GOptimizer")
       .def(py::init(  // Optimizer ctor
-	  [](std::vector<std::string> argv_str) {
-	    std::vector<char*> argv(argv_str.size() + 1);
-	    // dummy element since the first one is stripped in c++
-	    argv[0] = (char*)"python";
-	    std::generate(argv.begin() + 1, argv.end(),
-			  [n = 0, &argv_str]() mutable {
-			    // evil const cast magic that should be changed in
-			    // GenevaOptimizer
-			    return const_cast<char*>(argv_str[n++].c_str());
-			  });
-	    // use unique_ptr as the go2 attribute of go3 is not moveable
-	    std::cout << "argv:";
-	    for (auto a : argv) std::cout << a;
-	    return std::make_unique<GO3::GenevaOptimizer3>(argv.size(),
-							   argv.data());
-	  }))
-      .def("optimize",
-	   [](GO3::GenevaOptimizer3& self, GO3::Population<ftype>& pop,
-	      GO3::algorithmsT algos) {
-	     return (*self.optimize(pop, algos)).raw_fitness();
-	   })
+	       [](std::vector<std::string> argv_str) {
+		 std::vector<char*> argv(argv_str.size() + 1);
+		 // dummy element since the first one is stripped in c++
+		 argv[0] = (char*)"python";
+		 std::generate(
+		     argv.begin() + 1, argv.end(),
+		     [n = 0, &argv_str]() mutable {
+		       // evil const cast magic that should be changed in
+		       // GenevaOptimizer
+		       return const_cast<char*>(argv_str[n++].c_str());
+		     });
+		 // use unique_ptr as the go2 attribute of go3 is not moveable
+		 std::cout << "argv:";
+		 for (auto a : argv) std::cout << a;
+		 return std::make_unique<GO3::GenevaOptimizer3>(argv.size(),
+								argv.data());
+	       }),
+	   py::kw_only(), py::arg_v("cli_options", std::vector<std::string>()))
+      .def(
+	  "optimize",
+	  [](GO3::GenevaOptimizer3& self, GO3::Population<ftype>& pop,
+	     GO3::algorithmsT algos) {
+	    return (*self.optimize(pop, algos)).raw_fitness();
+	  },
+	  py::call_guard<py::scoped_ostream_redirect,
+			 py::scoped_estream_redirect>())
 
       ;
 
