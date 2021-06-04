@@ -57,7 +57,6 @@ PYBIND11_MODULE(pyneva, m)
 		  std::vector<double> right, int dim) {
 		 assert(left.empty() != right.empty());	 // xor
 		 assert(!start.empty() || dim > 0);
-		 // if unset set to dim, TODO value between left, right
 		 if (start.empty()) {
 		   if (!left.empty()) {
 		     dim = left.size();
