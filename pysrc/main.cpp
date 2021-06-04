@@ -13,6 +13,7 @@ int add(int i, int j) { return i + j; }
 
 namespace py = pybind11;
 
+using ftype = std::function<double(std::vector<double>)>;
 // PYBIND11_MAKE_OPAQUE(std::vector<double>);
 PYBIND11_MODULE(pyneva, m)
 {
@@ -48,7 +49,6 @@ PYBIND11_MODULE(pyneva, m)
       .def_readwrite("config",
 		     &GO3::Algorithm_EA::cfg);	// access to cfg attributes
   using dvec = std::vector<double>;
-  using ftype = std::function<double(std::vector<double>)>;
   // custom wrapper for the Go3 Population
   py::class_<GO3::Population<ftype>>(m, "Population")
       .def(py::init(  // Population ctor
@@ -131,10 +131,10 @@ PYBIND11_MODULE(pyneva, m)
 			 py::scoped_estream_redirect>())
 
       ;
-
 #ifdef VERSION_INFO
   m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
 #else
   m.attr("__version__") = "dev";
 #endif
 }
+BOOST_CLASS_EXPORT(Gem::Geneva::GenericIndividual<ftype>);
