@@ -6,19 +6,14 @@ assert m.add(1, 2) == 3
 assert m.subtract(1, 2) == -1
 
 class SumI:
-    def fitness(l):
-        print("fitness")
-        res = 0.0
-        for elem in l: res+=float(elem)
-        return res
+    def fitness(self,l):
+        return sum(l,0)
 
 A=m.EA(iterations=10);
 B=m.EA(iterations=100);
 f=SumI()
 print(dir(f))
 pop=m.Population(f=f,size=20,n_parents=4)
-#go3=m.GOptimizer(["--showAll"])
-go3=m.GOptimizer(cli_options=["-c","sc",])
+go3=m.GOptimizer(cli_options=["-c","stc",])
 print(go3.optimize(pop,[A,B]))
-b=test
-f([20])
+f.fitness([20])

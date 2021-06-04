@@ -13,7 +13,7 @@ int add(int i, int j) { return i + j; }
 
 namespace py = pybind11;
 
-PYBIND11_MAKE_OPAQUE(std::vector<double>);
+// PYBIND11_MAKE_OPAQUE(std::vector<double>);
 PYBIND11_MODULE(pyneva, m)
 {
   m.doc() = R"pbdoc(
@@ -53,15 +53,13 @@ PYBIND11_MODULE(pyneva, m)
   py::class_<GO3::Population<ftype>>(m, "Population")
       .def(py::init(  // Population ctor
 	       [](py::object functor, int size, int numParents) {
-		 pybind11::gil_scoped_release nogil;
 		 return GO3::Population<ftype>(
 		     {5, 5, 5}, {0, 0, 0}, {10, 10, 10},
 		     [functor](std::vector<double> v) -> double {
-		       // return std::accumulate(v.begin(), v.end(), 0.0);
-		       // std::string res = functor.attr("fitness")(v)
-		       auto a = py::array(py::cast(v));
-		       py::float_ r = functor.attr("fitness")(a);
-		       // double r = 15.0;
+		       assert(!v.empty());
+		       // acquire GIL so this threads can use the interpreter
+		       py::gil_scoped_acquire acquire;
+		       py::float_ r = functor.attr("fitness")(v);
 		       return r.cast<double>();
 		     },
 		     size, numParents);
@@ -93,7 +91,8 @@ PYBIND11_MODULE(pyneva, m)
 	  "optimize",
 	  [](GO3::GenevaOptimizer3& self, GO3::Population<ftype>& pop,
 	     GO3::algorithmsT algos) {
-	    pybind11::gil_scoped_acquire acquire;
+	    // release GIL so other threads can use python Interpreter
+	    pybind11::gil_scoped_release release;
 	    return (*self.optimize(pop, algos)).raw_fitness();
 	  },
 	  py::call_guard<py::scoped_ostream_redirect,
