@@ -1,19 +1,15 @@
 # -*- coding: utf-8 -*-
 import pyneva as m
+import sys
 
 assert m.__version__ == "0.0.1"
-assert m.add(1, 2) == 3
-assert m.subtract(1, 2) == -1
+def r(l): return sum(l,0) 
 
-class SumI:
-    def fitness(self,l):
-        return sum(l,0)
-
-A=m.EA(iterations=10);
-B=m.EA(iterations=100);
-f=SumI()
-print(dir(f))
-pop=m.Population(f=f,size=20,n_parents=4)
-go3=m.GOptimizer(cli_options=["-c","stc",])
-print(go3.optimize(pop,[A,B]))
-f.fitness([20])
+ea1=m.EA(iterations=10);
+pop=m.Population(f=lambda x:sum(x,0),size=20,n_parents=1,
+        left =[0,0,0],
+        #start=[5,5,5],
+        right=[9,9,9])
+go3=m.GOptimizer(cli_options=sys.argv)
+fitness=go3.optimize(pop,[ea1,m.EA(iterations=100)])
+print(fitness)

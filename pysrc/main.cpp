@@ -52,20 +52,53 @@ PYBIND11_MODULE(pyneva, m)
   // custom wrapper for the Go3 Population
   py::class_<GO3::Population<ftype>>(m, "Population")
       .def(py::init(  // Population ctor
-	       [](py::object functor, int size, int numParents) {
+	       [](py::object functor, int size, int numParents,
+		  std::vector<double> start, std::vector<double> left,
+		  std::vector<double> right, int dim) {
+		 assert(left.empty() != right.empty());	 // xor
+		 assert(!start.empty() || dim > 0);
+		 // if unset set to dim, TODO value between left, right
+		 if (start.empty()) {
+		   if (!left.empty()) {
+		     dim = left.size();
+		     std::cout << "boundaries set, but no start values given\n "
+				  "setting first individual between bounds"
+			       << std::endl;
+		     assert(left.size() == right.size());
+		     std::generate_n(std::back_inserter(start), dim,
+				     [&left, &right, n = 0]() mutable {
+				       return (right[n] - left[n++]) / 2;
+				     });
+		   }
+		   else
+		     start.resize(dim);
+		 }
+		 // if unset set bounds to max/min
+
+		 if (left.empty()) {
+		   assert(dim > 0);
+		   std::generate_n(std::back_inserter(left), dim,
+				   std::numeric_limits<double>::min);
+		   std::generate_n(std::back_inserter(right), dim,
+				   std::numeric_limits<double>::max);
+		 }
+
 		 return GO3::Population<ftype>(
-		     {5, 5, 5}, {0, 0, 0}, {10, 10, 10},
+		     start, left, right,
 		     [functor](std::vector<double> v) -> double {
 		       assert(!v.empty());
-		       // acquire GIL so this threads can use the interpreter
+		       // acquire GIL so the fitness threads can use the
+		       // interpreter
 		       py::gil_scoped_acquire acquire;
-		       py::float_ r = functor.attr("fitness")(v);
+		       py::float_ r = functor.attr("__call__")(v);
 		       return r.cast<double>();
 		     },
 		     size, numParents);
 	       }),
 	   py::arg("f"), py::kw_only(), py::arg_v("size", 42),
-	   py::arg_v("n_parents", 2));
+	   py::arg_v("n_parents", 2), py::arg_v("start", std::vector<double>()),
+	   py::arg_v("left", std::vector<double>()),
+	   py::arg_v("right", std::vector<double>()), py::arg_v("dim", -1));
   // custom wrapper for the Go3 Optimizer
   py::class_<GO3::GenevaOptimizer3>(m, "GOptimizer")
       .def(py::init(  // Optimizer ctor
