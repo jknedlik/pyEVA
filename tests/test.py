@@ -3,7 +3,6 @@ import pyneva as m
 import sys
 
 assert m.__version__ == "0.0.1"
-def r(l): return sum(l,0) 
 
 ea1=m.EA(iterations=10);
 pop=m.Population(f=lambda x:sum(x,0),size=20,n_parents=1,
@@ -12,4 +11,4 @@ pop=m.Population(f=lambda x:sum(x,0),size=20,n_parents=1,
         right=[9,9,9])
 go3=m.GOptimizer(cli_options=sys.argv)
 fitness=go3.optimize(pop,[ea1,m.EA(iterations=100)])
-print(fitness)
+assert(fitness <0.05)
