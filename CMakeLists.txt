@@ -29,7 +29,13 @@ find_package(pybind11 CONFIG REQUIRED)
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS}) 
 INCLUDE_DIRECTORIES(${GENEVA_INCLUDE_DIR}) 
 message("link against: ${GENEVA_LIBRARIES}")
-LINK_LIBRARIES(${GENEVA_LIBS} ${Boost_LIBRARIES})
+# compile GENEVA STATICALLY with fpic
+# using CXX=g++-10 cmake -DGENEVA_STATIC=1 -DCMAKE_POSITION_INDEPENDENT_CODE=true ..
+#transform to use the static libs
+list(TRANSFORM GENEVA_LIBS APPEND ".a")
+list(TRANSFORM Boost_LIBS APPEND ".a")
+message("link against: ${GENEVA_LIBS}")
+LINK_LIBRARIES(${Boost_LIBS} ${GENEVA_LIBS})
 pybind11_add_module(pyneva MODULE pysrc/main.cpp)
 
 target_compile_definitions(pyneva PRIVATE VERSION_INFO=${PROJECT_VERSION})
