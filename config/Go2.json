@@ -1,0 +1,17 @@
+{
+    "header": {
+        "comment": "This configuration file was automatically created by GParserBuilder",
+        "comment": "Tue Jun  1 11:38:22 2021"
+    },
+    "nProducerThreads": {
+        "comment": "The number of threads simultaneously producing random numbers",
+        "default": "0",
+        "value": "0"
+    },
+    "copyBestIndividualsOnly": {
+        "comment": "Indicates whether only the best individuals should be copied when",
+        "comment": "switching from one optimization algorithm to the next",
+        "default": "true",
+        "value": "true"
+    }
+}
