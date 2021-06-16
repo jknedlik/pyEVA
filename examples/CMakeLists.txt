@@ -1,4 +1,6 @@
 Project (Tests)
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
 SET ( EXECUTABLENAME GGenericStarter)
 
 # This is a workaround for a CLion-problem -- see CPP270 in the JetBrains issue tracker
@@ -19,6 +21,7 @@ TARGET_LINK_LIBRARIES (
     ${EXECUTABLENAME}
     ${GENEVA_LIBRARIES}
     ${Boost_LIBRARIES}
+    Threads::Threads
 )
 
 
