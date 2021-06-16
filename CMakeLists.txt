@@ -20,32 +20,36 @@ add_compile_options(-std=c++17)
 find_package(Geneva)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
-#set(Boost_USE_STATIC_LIBS   ON)
-#find_package(Boost COMPONENTS  wserialization serialization unit_test_framework program_options REQUIRED)
-find_package(Boost COMPONENTS  program_options serialization serialization unit_test_framework  REQUIRED)
-message("setting includes to ${GENEVA_INCLUDE_DIR},${Boost_INCLUDE_DIRS}")
-INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS}) 
+find_package(Boost COMPONENTS  wserialization serialization unit_test_framework program_options REQUIRED)
+#find_package(Boost COMPONENTS  program_options serialization serialization unit_test_framework  REQUIRED)
 # add example to run via geneva
 add_subdirectory(examples)
 if(PYBUILD)
 # Now we can find pybind11
 find_package(pybind11 CONFIG REQUIRED)
+
+# Set include dirs
+message("setting includes to ${GENEVA_INCLUDE_DIR},${Boost_INCLUDE_DIRS}")
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS}) 
 INCLUDE_DIRECTORIES(${GENEVA_INCLUDE_DIR}) 
-message("link against: ${GENEVA_LIBRARIES}")
+
 # compile GENEVA STATICALLY with fpic
 # using CXX=g++-10 cmake -DGENEVA_STATIC=1 -DCMAKE_POSITION_INDEPENDENT_CODE=true ..
-#transform to use the static libs
-#list(TRANSFORM GENEVA_LIBS APPEND ".a")
-#list(TRANSFORM Boost_LIBRARIES APPEND ".a")
-set(CMAKE_LINKER_FLAGS -pthread)
-set(CMAKE_CXX_FLAGS -pthread)
-add_compile_definitions(_GLIBCXX_USE_CXX11_ABI=0)
-message("link against: ${GENEVA_LIBS} ${Boost_LIBRARIES} /usr/lib/libboost_program_options.a Threads::Threads")
-LINK_LIBRARIES(${Boost_LIBRARIES} ${GENEVA_LIBS} Threads::Threads)
-pybind11_add_module(pyneva MODULE pysrc/main.cpp)
+#transform to use geneva static libs
+list(TRANSFORM GENEVA_LIBS APPEND ".a")
+#set boost to use static libs
+set(Boost_USE_STATIC_LIBS   ON)
+#set linking
 
+message("link against: ${GENEVA_LIBS} ${Boost_LIBRARIES}  Threads::Threads")
+LINK_LIBRARIES(${Boost_LIBRARIES} ${GENEVA_LIBS} Threads::Threads)
+
+# create python module via pybind
+
+pybind11_add_module(pyneva MODULE pysrc/main.cpp)
 target_compile_definitions(pyneva PRIVATE VERSION_INFO=${PROJECT_VERSION})
 
+# Install into Destination
 install(TARGETS pyneva DESTINATION .)
+
 endif()
