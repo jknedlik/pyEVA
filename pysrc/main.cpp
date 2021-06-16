@@ -73,14 +73,19 @@ PYBIND11_MODULE(pyneva, m)
 		   else
 		     start.resize(dim);
 		 }
+		 else
+		   dim = start.size();
 		 // if unset set bounds to max/min
 
 		 if (left.empty()) {
 		   assert(dim > 0);
-		   std::generate_n(std::back_inserter(left), dim,
-				   std::numeric_limits<double>::min);
-		   std::generate_n(std::back_inserter(right), dim,
-				   std::numeric_limits<double>::max);
+		   std::generate_n(
+		       std::back_inserter(left), dim,
+		       Gem::Geneva::GConstrainedValueLimitT<double>::lowest);
+		   std::generate_n(
+		       std::back_inserter(right), dim,
+		       Gem::Geneva::GConstrainedValueLimitT<double>::highest);
+		   // std::numeric_limits<double>::max / 10.0);
 		 }
 
 		 return GO3::Population<ftype>(
