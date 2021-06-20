@@ -105,6 +105,14 @@ PYBIND11_MODULE(pyneva, m)
 	   py::arg_v("left", std::vector<double>()),
 	   py::arg_v("right", std::vector<double>()), py::arg_v("dim", -1));
   // custom wrapper for the Go3 Optimizer
+  // custom return struct
+  struct PynevaResult {
+    double fitness;
+    std::vector<double> values;
+  };
+  py::class_<PynevaResult>(m, "Result")
+      .def_readwrite("values", &PynevaResult::values)
+      .def_readwrite("fitness", &PynevaResult::fitness);
   py::class_<GO3::GenevaOptimizer3>(m, "GOptimizer")
       .def(py::init(  // Optimizer ctor
 	       [](std::vector<std::string> argv_str) {
@@ -131,7 +139,11 @@ PYBIND11_MODULE(pyneva, m)
 	     GO3::algorithmsT algos) {
 	    // release GIL so other threads can use python Interpreter
 	    pybind11::gil_scoped_release release;
-	    return (*self.optimize(pop, algos)).raw_fitness();
+	    auto best = self.optimize(pop, algos);
+	    PynevaResult pr;
+	    pr.fitness = best->raw_fitness();
+	    best->streamline(pr.values);
+	    return pr;
 	  },
 	  py::call_guard<py::scoped_ostream_redirect,
 			 py::scoped_estream_redirect>())
