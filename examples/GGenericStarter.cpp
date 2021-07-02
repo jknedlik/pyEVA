@@ -1,5 +1,6 @@
 // Standard header files go here
 #include <iostream>
+#define BOOST_BIND_GLOBAL_PLACEHOLDERS 1
 
 // The new geneva optimizer interface #3
 #include <geneva-interface/Go3.hpp>
@@ -20,7 +21,7 @@ int main(int argc, char** argv)
   Algorithm_EA ea{.Iterations = 30};
   /* change config parameters via [] */
   ea[cfg::Iterations] = 100;  // only accepts cfg's for EA for now...
-  auto pop = Population{start, left, right, .func = lambda, .Iterations = {10}};
+  auto pop = Population{start, left, right, .func = lambda};
   /* change population config */
   pop[cfg::Size] = 1000;
   /* use the optimizer, add an Inplace GD */
