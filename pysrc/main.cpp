@@ -44,14 +44,17 @@ PYBIND11_MODULE(pyneva, m)
         Some other explanation about the subtract function.
     )pbdoc");
   // custom wrapper for the Go3 EA Algorithm
-  py::class_<GO3::Algorithm_EA>(m, "EA")
-      .def(py::init([](int iters) { return GO3::Algorithm_EA(iters); }),
-	   py::kw_only(), py::arg_v("iterations", 10))	// Algorithm ctor
-      .def_readwrite("config",
-		     &GO3::Algorithm_EA::cfg);	// access to cfg attributes
+  py::class_<GO3::Algorithm_EA>(m, "EA").def(
+      py::init([](int iters) {
+	return GO3::Algorithm_EA{.Iterations = iters, .algonum = 2};
+      }),
+      py::kw_only(), py::arg_v("iterations", 10));  // Algorithm ctor
+						    //.def_readwrite("config",
+  //		     &GO3::Algorithm_EA::cfg);	// access to cfg
+  // attributes
   using dvec = std::vector<double>;
   // custom wrapper for the Go3 Population
-  py::class_<GO3::Population<ftype>>(m, "Population")
+  py::class_<GO3::Population>(m, "Population")
       .def(py::init(  // Population ctor
 	       [](py::object functor, int size, int numParents,
 		  std::vector<double> start, std::vector<double> left,
@@ -85,12 +88,15 @@ PYBIND11_MODULE(pyneva, m)
 		   std::generate_n(
 		       std::back_inserter(right), dim,
 		       Gem::Geneva::GConstrainedValueLimitT<double>::highest);
-		   // std::numeric_limits<double>::max / 10.0);
 		 }
 
-		 return GO3::Population<ftype>(
-		     start, left, right,
-		     [functor](std::vector<double> v) -> double {
+		 return GO3::Population{
+		     start,
+		     left,
+		     right,
+		     .Size = size,
+		     .numParents = numParents,
+		     [functor](std::vector<double>& v) -> double {
 		       assert(!v.empty());
 		       // acquire GIL so the fitness threads can use the
 		       // interpreter
@@ -98,12 +104,16 @@ PYBIND11_MODULE(pyneva, m)
 		       py::float_ r = functor.attr("__call__")(v);
 		       return r.cast<double>();
 		     },
-		     size, numParents);
+		 };
 	       }),
 	   py::arg("f"), py::kw_only(), py::arg_v("size", 42),
 	   py::arg_v("n_parents", 2), py::arg_v("start", std::vector<double>()),
 	   py::arg_v("left", std::vector<double>()),
 	   py::arg_v("right", std::vector<double>()), py::arg_v("dim", -1));
+  //.def_readwrite("config",
+  //		     &GO3::Population::cfg);  // access to cfg
+  // attributes
+
   // custom wrapper for the Go3 Optimizer
   // custom return struct
   struct PynevaResult {
@@ -135,7 +145,7 @@ PYBIND11_MODULE(pyneva, m)
 	   py::kw_only(), py::arg_v("cli_options", std::vector<std::string>()))
       .def(
 	  "optimize",
-	  [](GO3::GenevaOptimizer3& self, GO3::Population<ftype>& pop,
+	  [](GO3::GenevaOptimizer3& self, GO3::Population& pop,
 	     GO3::algorithmsT algos) {
 	    // release GIL so other threads can use python Interpreter
 	    pybind11::gil_scoped_release release;
