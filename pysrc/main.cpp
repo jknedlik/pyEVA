@@ -163,6 +163,21 @@ PYBIND11_MODULE(pyneva, m)
 			 py::scoped_estream_redirect>())
 
       ;
+  using pagmo_algorithmT = std::vector<std::variant<Algo<::pagmo::sea>>>;
+  py::class_<PagmoOptimizer>(m, "POptimizer")
+      .def(py::init())
+      .def(
+	  "optimize",
+	  [](PagmoOptimizer& self, GO3::Population& pop,
+	     pagmo_algorithmT algos) {
+	    // release GIL so other threads can use python Interpreter
+	    pybind11::gil_scoped_release release;
+	    auto pagmo_pop = self.optimize(pop, algos);
+	    return PynevaResult{.fitness = pagmo_pop.champion_f()[0],
+				.values = pagmo_pop.champion_x()};
+	  },
+	  py::call_guard<py::scoped_ostream_redirect,
+			 py::scoped_estream_redirect>());
 #ifdef VERSION_INFO
   m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
 #else

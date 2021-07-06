@@ -36,9 +36,9 @@ struct Algo : pagmo_algo {
 	std::forward_as_tuple(Iterations, algonum));
   }
 };
-using AlgorithmT = std::vector<std::variant<Algo<::pagmo::sea>>>;
+using pagmo_algorithmT = std::vector<std::variant<Algo<::pagmo::sea>>>;
 struct PagmoOptimizer {
-  auto optimize(GO3::Population &gpop, AlgorithmT algos)
+  auto optimize(GO3::Population &gpop, pagmo_algorithmT algos)
   {
     // define problem
     problem prob{pyneva_python_problem{
