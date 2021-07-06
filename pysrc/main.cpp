@@ -151,8 +151,10 @@ PYBIND11_MODULE(pyneva, m)
 	    pybind11::gil_scoped_release release;
 	    auto best = self.optimize(pop, algos);
 	    PynevaResult pr;
-	    pr.fitness = best->raw_fitness();
-	    best->streamline(pr.values);
+	    if (best) {
+	      pr.fitness = best->raw_fitness();
+	      best->streamline(pr.values);
+	    }
 	    return pr;
 	  },
 	  py::call_guard<py::scoped_ostream_redirect,
@@ -165,4 +167,4 @@ PYBIND11_MODULE(pyneva, m)
   m.attr("__version__") = "dev";
 #endif
 }
-BOOST_CLASS_EXPORT(Gem::Geneva::GenericIndividual<ftype>);
+//#BOOST_CLASS_EXPORT(Gem::Geneva::GenericIndividual<ftype>);
