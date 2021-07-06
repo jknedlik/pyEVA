@@ -41,8 +41,8 @@ list(TRANSFORM GENEVA_LIBS APPEND ".a")
 set(Boost_USE_STATIC_LIBS   ON)
 #set linking
 
-message("link against: ${GENEVA_LIBS} ${Boost_LIBRARIES}  Threads::Threads")
-LINK_LIBRARIES(${Boost_LIBRARIES} ${GENEVA_LIBS} Threads::Threads)
+message("link against: ${GENEVA_LIBS} ${Boost_LIBRARIES}  Threads::Threads -lpagmo")
+LINK_LIBRARIES(${Boost_LIBRARIES} ${GENEVA_LIBS} Threads::Threads pagmo)
 
 # create python module via pybind
 
