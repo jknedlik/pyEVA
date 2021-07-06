@@ -20,6 +20,7 @@ struct accumulate_problem {
   {
     return {{0., 0., 0.}, {9., 9., 9.}};
   }
+  std::string get_name() { return std::string{"acummulate"}; }
 };
 int main()
 {
