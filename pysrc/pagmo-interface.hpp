@@ -3,6 +3,7 @@
 #include <iostream>
 #include <pagmo/algorithm.hpp>
 #include <pagmo/algorithms/nsga2.hpp>
+#include <pagmo/algorithms/sade.hpp>
 #include <pagmo/algorithms/sea.hpp>
 #include <pagmo/population.hpp>
 #include <pagmo/problem.hpp>
@@ -36,7 +37,8 @@ struct Algo : pagmo_algo {
 	std::forward_as_tuple(Iterations, algonum));
   }
 };
-using pagmo_algorithmT = std::vector<std::variant<Algo<::pagmo::sea>>>;
+using pagmo_algorithmT =
+    std::vector<std::variant<Algo<::pagmo::sea>, Algo<::pagmo::sade>>>;
 struct PagmoOptimizer {
   auto optimize(GO3::Population &gpop, pagmo_algorithmT algos)
   {

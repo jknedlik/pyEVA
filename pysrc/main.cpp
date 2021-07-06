@@ -163,7 +163,22 @@ PYBIND11_MODULE(pyneva, m)
 			 py::scoped_estream_redirect>())
 
       ;
-  using pagmo_algorithmT = std::vector<std::variant<Algo<::pagmo::sea>>>;
+  py::class_<Algo<pagmo::sea>>(m, "Pagmo_EA")
+      .def(py::init([](int iters) {
+	     return Algo<pagmo::sea>{.Iterations = iters, .algonum = 2};
+	   }),
+	   py::kw_only(),
+	   py::arg_v("iterations", 10));  // Algorithm ctor
+					  //.def_readwrite("config",
+  py::class_<Algo<pagmo::sade>>(m, "Pagmo_SADE")
+      .def(py::init([](int iters) {
+	     return Algo<pagmo::sade>{.Iterations = iters, .algonum = 2};
+	   }),
+	   py::kw_only(),
+	   py::arg_v("iterations", 10));  // Algorithm ctor
+					  //.def_readwrite("config",
+  using pagmo_algorithmT =
+      std::vector<std::variant<Algo<::pagmo::sea>, Algo<::pagmo::sade>>>;
   py::class_<PagmoOptimizer>(m, "POptimizer")
       .def(py::init())
       .def(
