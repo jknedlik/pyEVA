@@ -5,7 +5,9 @@
 #include <pybind11/stl.h>
 #include <pybind11/stl_bind.h>
 
-#include <geneva-interface/Go3.hpp>
+//#include <geneva-interface/Go3.hpp>
+
+#include "pagmo-interface.hpp"
 
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
