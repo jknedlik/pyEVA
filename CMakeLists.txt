@@ -38,10 +38,10 @@ INCLUDE_DIRECTORIES(${GENEVA_INCLUDE_DIR})
 #transform to use geneva static libs
 list(TRANSFORM GENEVA_LIBS APPEND ".a")
 #set boost to use static libs
-set(Boost_USE_STATIC_LIBS   ON)
+set(Boost_USE_STATIC_LIBS   OFF)
 #set linking
 
-message("link against: ${GENEVA_LIBS} ${Boost_LIBRARIES}  Threads::Threads -lpagmo")
+message("link against: ${GENEVA_LIBS} ${Boost_LIBRARIES}  Threads::Threads -lpagmo -ltbb" )
 LINK_LIBRARIES(${Boost_LIBRARIES} ${GENEVA_LIBS} Threads::Threads pagmo)
 
 # create python module via pybind

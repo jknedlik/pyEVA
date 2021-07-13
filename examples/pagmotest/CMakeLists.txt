@@ -22,6 +22,7 @@ TARGET_LINK_LIBRARIES (
     ${Boost_LIBRARIES}
     Threads::Threads
     pagmo
+    tbb
 )
 
 INSTALL ( TARGETS ${EXECUTABLENAME} DESTINATION ${EXECUTABLENAME} )
