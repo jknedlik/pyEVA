@@ -6,3 +6,6 @@ clean:
 	python setup.py clean 
 test:
 	python tests/test.py
+docker:
+	docker build --tag "pyneva:latest" .
+
