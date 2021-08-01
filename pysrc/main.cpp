@@ -122,36 +122,42 @@ PYBIND11_MODULE(pyneva, m)
     double fitness;
     std::vector<double> values;
   };
+  py::enum_<execMode>(m, "parmode")
+      .value("networked", execMode::BROKER)
+      .value("serial", execMode::SERIAL)
+      .value("threaded", execMode::MULTITHREADED);
   py::class_<PynevaResult>(m, "Result")
       .def_readwrite("values", &PynevaResult::values)
       .def_readwrite("fitness", &PynevaResult::fitness);
   py::class_<GO3::GenevaOptimizer3>(m, "GOptimizer")
       .def(py::init(  // Optimizer ctor
-	       [](std::vector<std::string> argv_str) {
+	       [](std::vector<std::string> argv_str, execMode e),
+	       {
 		 std::vector<char*> argv(argv_str.size() + 1);
 		 // dummy element since the first one is stripped in c++
 		 argv[0] = (char*)"python";
 		 std::generate(
 		     argv.begin() + 1, argv.end(),
 		     [n = 0, &argv_str]() mutable {
-		       // evil const cast magic that should be changed in
-		       // GenevaOptimizer
+		       // evil const cast magic that should be changed
+		       // in GenevaOptimizer
 		       return const_cast<char*>(argv_str[n++].c_str());
 		     });
 		 // use unique_ptr as the go2 attribute of go3 is not moveable
 		 std::cout << "argv:";
 		 for (auto a : argv) std::cout << a;
 		 return std::make_unique<GO3::GenevaOptimizer3>(argv.size(),
-								argv.data());
+								argv.data(), e);
 	       }),
-	   py::kw_only(), py::arg_v("cli_options", std::vector<std::string>()))
+	   py::kw_only(), py::arg_v("cli_options", std::vector<std::string>()),
+	   py::arg_v("parMode", execMode::SERIAL))
       .def(
 	  "optimize",
 	  [](GO3::GenevaOptimizer3& self, GO3::Population& pop,
-	     GO3::algorithmsT algos) {
+	     GO3::algorithmsT algos, bool isclient = false) {
 	    // release GIL so other threads can use python Interpreter
 	    pybind11::gil_scoped_release release;
-	    auto best = self.optimize(pop, algos);
+	    auto best = self.optimize(pop, algos, isclient);
 	    PynevaResult pr;
 	    if (best) {
 	      pr.fitness = best->raw_fitness();
