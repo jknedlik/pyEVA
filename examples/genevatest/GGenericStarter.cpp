@@ -18,13 +18,14 @@ int main(int argc, char** argv)
   /*create optimizer,give CLI options */
   GenevaOptimizer3 go3{argc, argv};
   /* create ea , for easy handling*/
-  Algorithm_EA ea{.Iterations = 30};
+  Algorithms::Evolutionary ea{.Iterations = 30};
   /* change config parameters via [] */
   ea[cfg::Iterations] = 100;  // only accepts cfg's for EA for now...
   auto pop = Population{start, left, right, .func = lambda};
   /* change population config */
   pop[cfg::Size] = 1000;
   /* use the optimizer, add an Inplace GD */
-  auto best_ptr = go3.optimize(pop, {ea, Algorithm_GD{.Iterations = 1005}});
+  auto best_ptr =
+      go3.optimize(pop, {ea, Algorithms::GradientDescent{.Iterations = 1005}});
   std::cout << best_ptr << std::endl;
 }

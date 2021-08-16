@@ -46,9 +46,9 @@ PYBIND11_MODULE(pyneva, m)
         Some other explanation about the subtract function.
     )pbdoc");
   // custom wrapper for the Go3 EA Algorithm
-  py::class_<GO3::Algorithm_EA>(m, "EA").def(
+  py::class_<GO3::Algorithms::Evolutionary>(m, "EA").def(
       py::init([](int iters) {
-	return GO3::Algorithm_EA{.Iterations = iters, .algonum = 2};
+	return GO3::Algorithms::Evolutionary{.Iterations = iters, .algonum = 2};
       }),
       py::kw_only(), py::arg_v("iterations", 10));  // Algorithm ctor
 						    //.def_readwrite("config",
@@ -122,17 +122,16 @@ PYBIND11_MODULE(pyneva, m)
     double fitness;
     std::vector<double> values;
   };
-  py::enum_<execMode>(m, "parmode")
-      .value("networked", execMode::BROKER)
-      .value("serial", execMode::SERIAL)
-      .value("threaded", execMode::MULTITHREADED);
+  py::enum_<GO3::ParMode>(m, "parmode")
+      .value("networked", GO3::ParMode::networked)
+      .value("serial", GO3::ParMode::serial)
+      .value("threaded", GO3::ParMode::threaded);
   py::class_<PynevaResult>(m, "Result")
       .def_readwrite("values", &PynevaResult::values)
       .def_readwrite("fitness", &PynevaResult::fitness);
   py::class_<GO3::GenevaOptimizer3>(m, "GOptimizer")
       .def(py::init(  // Optimizer ctor
-	       [](std::vector<std::string> argv_str, execMode e),
-	       {
+	       [](std::vector<std::string> argv_str, GO3::ParMode p) {
 		 std::vector<char*> argv(argv_str.size() + 1);
 		 // dummy element since the first one is stripped in c++
 		 argv[0] = (char*)"python";
@@ -147,14 +146,15 @@ PYBIND11_MODULE(pyneva, m)
 		 std::cout << "argv:";
 		 for (auto a : argv) std::cout << a;
 		 return std::make_unique<GO3::GenevaOptimizer3>(argv.size(),
-								argv.data(), e);
+								argv.data(), p);
 	       }),
 	   py::kw_only(), py::arg_v("cli_options", std::vector<std::string>()),
-	   py::arg_v("parMode", execMode::SERIAL))
+	   py::arg_v("parMode", GO3::ParMode::serial))
       .def(
 	  "optimize",
 	  [](GO3::GenevaOptimizer3& self, GO3::Population& pop,
-	     GO3::algorithmsT algos, bool isclient = false) {
+	     std::vector<GO3::Algorithms::Algorithm> algos,
+	     bool isclient = false) {
 	    // release GIL so other threads can use python Interpreter
 	    pybind11::gil_scoped_release release;
 	    auto best = self.optimize(pop, algos, isclient);
