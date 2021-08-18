@@ -1,4 +1,5 @@
 #define BOOST_BIND_GLOBAL_PLACEHOLDERS 1
+#include <pybind11/chrono.h>
 #include <pybind11/iostream.h>
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
@@ -8,6 +9,7 @@
 //#include <geneva-interface/Go3.hpp>
 
 #include "pagmo-interface.hpp"
+#include "timedtests.hpp"
 
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
@@ -15,8 +17,6 @@
 int add(int i, int j) { return i + j; }
 
 namespace py = pybind11;
-
-using ftype = std::function<double(std::vector<double>)>;
 // PYBIND11_MAKE_OPAQUE(std::vector<double>);
 PYBIND11_MODULE(pyneva, m)
 {
@@ -145,8 +145,9 @@ PYBIND11_MODULE(pyneva, m)
 		 // use unique_ptr as the go2 attribute of go3 is not moveable
 		 std::cout << "argv:";
 		 for (auto a : argv) std::cout << a;
-		 return std::make_unique<GO3::GenevaOptimizer3>(argv.size(),
-								argv.data(), p);
+		 return std::make_unique<GO3::GenevaOptimizer3>(
+		     argv.size(), argv.data(), p, false,
+		     std::vector<std::shared_ptr<GBasePluggableOM>>{});
 	       }),
 	   py::kw_only(), py::arg_v("cli_options", std::vector<std::string>()),
 	   py::arg_v("parMode", GO3::ParMode::serial))
@@ -199,6 +200,25 @@ PYBIND11_MODULE(pyneva, m)
 	  },
 	  py::call_guard<py::scoped_ostream_redirect,
 			 py::scoped_estream_redirect>());
+  m.def("rosenbrock", &rbrock_fitness);
+  m.def("test_random_binding", &test_random_binding);
+  m.def("test_random", &test_random);
+  m.def("test_pagmo", &test_pagmo);
+
+  m.def("test_geneva", [](size_t dim, const int popsize, nanoseconds waittime,
+			  std::vector<std::string> argv_str, GO3::ParMode p) {
+    std::vector<char*> argv(argv_str.size() + 1);
+    // dummy element since the first one is stripped in c++
+    argv[0] = (char*)"python";
+    std::generate_n(argv.begin() + 1, argv_str.size(),
+		    [n = 0, &argv_str]() mutable {
+		      // evil const cast magic that should be changed
+		      // in GenevaOptimizer
+		      return const_cast<char*>(argv_str[n++].c_str());
+		    });
+    return test_geneva(dim, waittime, popsize, p, argv.data(), argv_str.size());
+  });
+  // use unique_ptr as the go2 attribute of go3 is not moveable
 #ifdef VERSION_INFO
   m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
 #else

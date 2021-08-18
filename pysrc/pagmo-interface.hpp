@@ -18,6 +18,7 @@ struct pyneva_python_problem {
   }};
   vector_double left{};
   vector_double right{};
+  const thread_safety ts{thread_safety::none};
   vector_double fitness(const vector_double &dv) const
   {
     vector_double r{dv};
@@ -25,7 +26,10 @@ struct pyneva_python_problem {
   }
   using pair_v_d = std::pair<vector_double, vector_double>;
   pair_v_d get_bounds() const { return {left, right}; }
+
+  auto get_thread_safety() const { return ts; }
 };
+static_assert(pagmo::has_get_thread_safety<pyneva_python_problem>::value, "");
 template <typename pagmo_algo>
 struct Algo : pagmo_algo {
   int Iterations{10};
