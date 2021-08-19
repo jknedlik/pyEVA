@@ -131,7 +131,8 @@ PYBIND11_MODULE(pyneva, m)
       .def_readwrite("fitness", &PynevaResult::fitness);
   py::class_<GO3::GenevaOptimizer3>(m, "GOptimizer")
       .def(py::init(  // Optimizer ctor
-	       [](std::vector<std::string> argv_str, GO3::ParMode p) {
+	       [](std::vector<std::string> argv_str, GO3::ParMode p,
+		  size_t evalthreads) {
 		 std::vector<char*> argv(argv_str.size() + 1);
 		 // dummy element since the first one is stripped in c++
 		 argv[0] = (char*)"python";
@@ -147,10 +148,12 @@ PYBIND11_MODULE(pyneva, m)
 		 for (auto a : argv) std::cout << a;
 		 return std::make_unique<GO3::GenevaOptimizer3>(
 		     argv.size(), argv.data(), p, false,
-		     std::vector<std::shared_ptr<GBasePluggableOM>>{});
+		     std::vector<std::shared_ptr<GBasePluggableOM>>{},
+		     evalthreads);
 	       }),
 	   py::kw_only(), py::arg_v("cli_options", std::vector<std::string>()),
-	   py::arg_v("parMode", GO3::ParMode::serial))
+	   py::arg_v("parMode", GO3::ParMode::serial),
+	   py::arg_v("evalthreads", std::thread::hardware_concurrency()))
       .def(
 	  "optimize",
 	  [](GO3::GenevaOptimizer3& self, GO3::Population& pop,
