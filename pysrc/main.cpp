@@ -122,6 +122,11 @@ PYBIND11_MODULE(pyneva, m)
     double fitness;
     std::vector<double> values;
   };
+  py::class_<GO3::bestMonitor, std::shared_ptr<GO3::bestMonitor>>(m, "Monitor")
+      .def_readwrite("best", &GO3::bestMonitor::bests)
+      .def(py::init([]() {
+	return std::make_shared<GO3::bestMonitor>();
+      }));  // Optimizer ctor
   py::enum_<GO3::ParMode>(m, "parmode")
       .value("networked", GO3::ParMode::networked)
       .value("serial", GO3::ParMode::serial)
@@ -132,7 +137,8 @@ PYBIND11_MODULE(pyneva, m)
   py::class_<GO3::GenevaOptimizer3>(m, "GOptimizer")
       .def(py::init(  // Optimizer ctor
 	       [](std::vector<std::string> argv_str, GO3::ParMode p,
-		  size_t evalthreads) {
+		  size_t evalthreads,
+		  std::vector<std::shared_ptr<GO3::bestMonitor>> monitors) {
 		 std::vector<char*> argv(argv_str.size() + 1);
 		 // dummy element since the first one is stripped in c++
 		 argv[0] = (char*)"python";
@@ -146,14 +152,18 @@ PYBIND11_MODULE(pyneva, m)
 		 // use unique_ptr as the go2 attribute of go3 is not moveable
 		 std::cout << "argv:";
 		 for (auto a : argv) std::cout << a;
+		 std::vector<std::shared_ptr<GBasePluggableOM>> plugs(
+		     monitors.size());
+		 std::transform(monitors.begin(), monitors.end(), plugs.begin(),
+				[](auto& ptr) { return ptr; });
 		 return std::make_unique<GO3::GenevaOptimizer3>(
-		     argv.size(), argv.data(), p, false,
-		     std::vector<std::shared_ptr<GBasePluggableOM>>{},
-		     evalthreads);
+		     argv.size(), argv.data(), p, false, plugs, evalthreads);
 	       }),
 	   py::kw_only(), py::arg_v("cli_options", std::vector<std::string>()),
 	   py::arg_v("parMode", GO3::ParMode::serial),
-	   py::arg_v("evalthreads", std::thread::hardware_concurrency()))
+	   py::arg_v("evalthreads", std::thread::hardware_concurrency()),
+	   py::arg_v("monitors",
+		     std::vector<std::shared_ptr<GO3::bestMonitor>>{}))
       .def(
 	  "optimize",
 	  [](GO3::GenevaOptimizer3& self, GO3::Population& pop,
