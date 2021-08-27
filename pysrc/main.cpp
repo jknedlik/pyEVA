@@ -195,16 +195,21 @@ PYBIND11_MODULE(pyneva, m)
 	   py::kw_only(),
 	   py::arg_v("iterations", 10));  // Algorithm ctor
 					  //.def_readwrite("config",
-  py::class_<Algo<pagmo::nsga2>>(m, "nsga2")
+  py::class_<Algo<pagmo::nsga2>>(m, "Pagmo_nsga2")
       .def(py::init([](int iters) {
 	     return Algo<pagmo::nsga2>{.Iterations = iters, .algonum = 2};
 	   }),
 	   py::kw_only(),
 	   py::arg_v("iterations", 10));  // Algorithm ctor
 					  //.def_readwrite("config",
+  py::class_<pagmo::gaco>(m, "Pagmo_gaco")
+      .def(py::init([](int iters, int ker) { return pagmo::gaco(iters, ker); }),
+	   py::kw_only(), py::arg_v("iterations", 10),
+	   py::arg_v("ker", 10));  // Algorithm ctor
+				   //.def_readwrite("config",
   using pagmo_algorithmT =
       std::vector<std::variant<Algo<::pagmo::sea>, Algo<::pagmo::sade>,
-			       Algo<::pagmo::nsga2>>>;
+			       Algo<::pagmo::nsga2>, ::pagmo::gaco>>;
   py::class_<PagmoOptimizer>(m, "POptimizer")
       .def(py::init([](GO3::ParMode p = GO3::ParMode::serial) {
 	return PagmoOptimizer{.ts = (GO3::ParMode::threaded == p)

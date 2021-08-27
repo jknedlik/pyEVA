@@ -2,10 +2,12 @@
 #include <geneva-interface/Go3.hpp>
 #include <iostream>
 #include <pagmo/algorithm.hpp>
+#include <pagmo/algorithms/gaco.hpp>
 #include <pagmo/algorithms/nsga2.hpp>
 #include <pagmo/algorithms/sade.hpp>
 #include <pagmo/algorithms/sea.hpp>
 #include <pagmo/batch_evaluators/default_bfe.hpp>
+#include <pagmo/batch_evaluators/thread_bfe.hpp>
 #include <pagmo/population.hpp>
 #include <pagmo/problem.hpp>
 #include <pagmo/problems/dtlz.hpp>
@@ -45,7 +47,7 @@ struct Algo : pagmo_algo {
 };
 using pagmo_algorithmT =
     std::vector<std::variant<Algo<::pagmo::sea>, Algo<::pagmo::sade>,
-			     Algo<::pagmo::nsga2>>>;
+			     Algo<::pagmo::nsga2>, ::pagmo::gaco>>;
 struct PagmoOptimizer {
   const thread_safety ts{thread_safety::none};
 
@@ -54,20 +56,32 @@ struct PagmoOptimizer {
     // define problem
     problem prob{pyneva_python_problem{
 	.func = gpop.func, .left = gpop.left, .right = gpop.right, .ts = ts}};
+    assert(prob.get_thread_safety == ts);
     // create pop from gpop
-    population pop{prob, static_cast<size_t>(gpop.Size)};
+
+    pagmo::default_bfe bf{};
+    population pop = [&]() {
+      // if (thread_safety::basic == ts)
+      if (false)
+	return population{prob, bf, static_cast<size_t>(gpop.Size)};
+      else
+	return population{prob, static_cast<size_t>(gpop.Size)};
+    }();
 
     for (auto algo : algos)
       std::visit(
 	  [&](auto &al) {
 	    if constexpr (std::is_base_of_v<
-			      pagmo::nsga2,
+			      pagmo::gaco,
 			      std::remove_reference_t<decltype(al)>>) {
-	      pagmo::bfe bf{pagmo::default_bfe()};
-	      if (ts == thread_safety::basic) al.set_bfe(bf);
+	      if (ts == thread_safety::basic) al.set_bfe(pagmo::bfe(bf));
+	      pagmo::algorithm newalgo(al);
+	      pop = newalgo.evolve(pop);
 	    }
-	    for (int i = 0; i < al[GO3::cfg::Iterations]; i++)
-	      pop = al.evolve(pop);
+	    else {
+	      for (int i = 0; i < al[GO3::cfg::Iterations]; i++)
+		pop = al.evolve(pop);
+	    }
 	  },
 	  algo);
     return pop;
