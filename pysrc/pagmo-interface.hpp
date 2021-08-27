@@ -5,10 +5,12 @@
 #include <pagmo/algorithms/nsga2.hpp>
 #include <pagmo/algorithms/sade.hpp>
 #include <pagmo/algorithms/sea.hpp>
+#include <pagmo/batch_evaluators/default_bfe.hpp>
 #include <pagmo/population.hpp>
 #include <pagmo/problem.hpp>
 #include <pagmo/problems/dtlz.hpp>
 #include <pagmo/types.hpp>
+#include <type_traits>
 
 using namespace pagmo;
 struct pyneva_python_problem {
@@ -42,19 +44,28 @@ struct Algo : pagmo_algo {
   }
 };
 using pagmo_algorithmT =
-    std::vector<std::variant<Algo<::pagmo::sea>, Algo<::pagmo::sade>>>;
+    std::vector<std::variant<Algo<::pagmo::sea>, Algo<::pagmo::sade>,
+			     Algo<::pagmo::nsga2>>>;
 struct PagmoOptimizer {
+  const thread_safety ts{thread_safety::none};
+
   auto optimize(GO3::Population &gpop, pagmo_algorithmT algos)
   {
     // define problem
     problem prob{pyneva_python_problem{
-	.func = gpop.func, .left = gpop.left, .right = gpop.right}};
+	.func = gpop.func, .left = gpop.left, .right = gpop.right, .ts = ts}};
     // create pop from gpop
     population pop{prob, static_cast<size_t>(gpop.Size)};
 
     for (auto algo : algos)
       std::visit(
 	  [&](auto &al) {
+	    if constexpr (std::is_base_of_v<
+			      pagmo::nsga2,
+			      std::remove_reference_t<decltype(al)>>) {
+	      pagmo::bfe bf{pagmo::default_bfe()};
+	      if (ts == thread_safety::basic) al.set_bfe(bf);
+	    }
 	    for (int i = 0; i < al[GO3::cfg::Iterations]; i++)
 	      pop = al.evolve(pop);
 	  },

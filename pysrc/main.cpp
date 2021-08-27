@@ -180,9 +180,7 @@ PYBIND11_MODULE(pyneva, m)
 	    return pr;
 	  },
 	  py::call_guard<py::scoped_ostream_redirect,
-			 py::scoped_estream_redirect>())
-
-      ;
+			 py::scoped_estream_redirect>());
   py::class_<Algo<pagmo::sea>>(m, "Pagmo_EA")
       .def(py::init([](int iters) {
 	     return Algo<pagmo::sea>{.Iterations = iters, .algonum = 2};
@@ -197,10 +195,22 @@ PYBIND11_MODULE(pyneva, m)
 	   py::kw_only(),
 	   py::arg_v("iterations", 10));  // Algorithm ctor
 					  //.def_readwrite("config",
+  py::class_<Algo<pagmo::nsga2>>(m, "nsga2")
+      .def(py::init([](int iters) {
+	     return Algo<pagmo::nsga2>{.Iterations = iters, .algonum = 2};
+	   }),
+	   py::kw_only(),
+	   py::arg_v("iterations", 10));  // Algorithm ctor
+					  //.def_readwrite("config",
   using pagmo_algorithmT =
-      std::vector<std::variant<Algo<::pagmo::sea>, Algo<::pagmo::sade>>>;
+      std::vector<std::variant<Algo<::pagmo::sea>, Algo<::pagmo::sade>,
+			       Algo<::pagmo::nsga2>>>;
   py::class_<PagmoOptimizer>(m, "POptimizer")
-      .def(py::init())
+      .def(py::init([](GO3::ParMode p = GO3::ParMode::serial) {
+	return PagmoOptimizer{.ts = (GO3::ParMode::threaded == p)
+					? thread_safety::basic
+					: thread_safety::none};
+      }))
       .def(
 	  "optimize",
 	  [](PagmoOptimizer& self, GO3::Population& pop,
