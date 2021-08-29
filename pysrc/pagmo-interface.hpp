@@ -60,13 +60,7 @@ struct PagmoOptimizer {
     // create pop from gpop
 
     pagmo::default_bfe bf{};
-    population pop = [&]() {
-      // if (thread_safety::basic == ts)
-      if (false)
-	return population{prob, bf, static_cast<size_t>(gpop.Size)};
-      else
-	return population{prob, static_cast<size_t>(gpop.Size)};
-    }();
+    population pop{prob, static_cast<size_t>(gpop.Size)};
 
     for (auto algo : algos)
       std::visit(
@@ -77,6 +71,7 @@ struct PagmoOptimizer {
 	      if (ts == thread_safety::basic) al.set_bfe(pagmo::bfe(bf));
 	      pagmo::algorithm newalgo(al);
 	      pop = newalgo.evolve(pop);
+	      // pop = al.evolve(pop);
 	    }
 	    else {
 	      for (int i = 0; i < al[GO3::cfg::Iterations]; i++)
