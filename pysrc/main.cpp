@@ -92,18 +92,19 @@ PYBIND11_MODULE(pyneva, m)
 		       Gem::Geneva::GConstrainedValueLimitT<double>::highest);
 		 }
 
+		 auto ptr = std::make_shared<py::object>(functor);
 		 return GO3::Population{
 		     start,
 		     left,
 		     right,
 		     .Size = size,
 		     .numParents = numParents,
-		     [functor](std::vector<double>& v) -> double {
+		     [ptr](std::vector<double>& v) -> double {
 		       assert(!v.empty());
 		       // acquire GIL so the fitness threads can use the
 		       // interpreter
 		       py::gil_scoped_acquire acquire;
-		       py::float_ r = functor.attr("__call__")(v);
+		       py::float_ r = ptr->attr("__call__")(v);
 		       return r.cast<double>();
 		     },
 		 };
