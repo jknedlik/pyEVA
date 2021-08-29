@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.15...3.19)
 project(pyneva VERSION "0.0.1")
 include (FindPackageHandleStandardArgs)
 
+set(CMAKE_BUILD_TYPE Debug)
 if(SKBUILD)
   # Scikit-Build does not add your site-packages to the search path automatically,
   # so we need to add it _or_ the pybind11 specific directory here.

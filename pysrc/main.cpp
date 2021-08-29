@@ -58,11 +58,11 @@ PYBIND11_MODULE(pyneva, m)
   // custom wrapper for the Go3 Population
   py::class_<GO3::Population>(m, "Population")
       .def(py::init(  // Population ctor
-	       [](py::object& functor, int size, int numParents,
+	       [](py::object functor, int size, int numParents,
 		  std::vector<double> start, std::vector<double> left,
 		  std::vector<double> right, int dim) {
-		 assert(left.empty() != right.empty());	 // xor
-		 assert(!start.empty() || dim > 0);
+		 assert(!left.empty() || !right.empty() || !start.empty() ||
+			dim > 0);  // xor
 		 if (start.empty()) {
 		   if (!left.empty()) {
 		     dim = left.size();

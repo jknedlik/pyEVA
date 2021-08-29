@@ -56,7 +56,7 @@ struct PagmoOptimizer {
     // define problem
     problem prob{pyneva_python_problem{
 	.func = gpop.func, .left = gpop.left, .right = gpop.right, .ts = ts}};
-    assert(prob.get_thread_safety == ts);
+    assert(prob.get_thread_safety() == ts);
     // create pop from gpop
 
     pagmo::default_bfe bf{};
