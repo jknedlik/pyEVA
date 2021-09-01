@@ -93,6 +93,7 @@ PYBIND11_MODULE(pyneva, m)
 		 }
 
 		 auto ptr = std::make_shared<py::object>(functor);
+		 ptr->inc_ref();  // inc_ref, as our shared_ptr shall also count
 		 return GO3::Population{
 		     start,
 		     left,
@@ -104,7 +105,7 @@ PYBIND11_MODULE(pyneva, m)
 		       // acquire GIL so the fitness threads can use the
 		       // interpreter
 		       py::gil_scoped_acquire acquire;
-		       py::float_ r = ptr->attr("__call__")(v);
+		       py::float_ r = (*ptr)(v);
 		       return r.cast<double>();
 		     },
 		 };
